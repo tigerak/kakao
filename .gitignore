@@ -6,3 +6,4 @@ data/kalkforme.txt
 data/ekaud.txt
 data/emotion_tolk.txt
 data/431_group.txt
+weight/bert_2.pt
