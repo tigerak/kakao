@@ -193,9 +193,9 @@ def btn_date_save_cmd():
                                                     start_date, 
                                                     end_date, 
                                                     yes_no_name)
-    
+    name_values = ['이름을 선택해주세요']
     for i in sorted(all_chat['Name'].unique()):
-        name_values.append( str(i) )
+        name_values.append(i)
     combobox_name_values = ttk.Combobox(frame_graph, width=20, height=10,
                                         values=name_values,
                                         state='readonly')
@@ -235,7 +235,7 @@ progressbar_1.grid(row=4, column=0, padx=5, pady=5, sticky=N+E+W+S)
 
 
 ### 결과 출력 ###
-frame_result = LabelFrame(root, text='! 사진 올린 사람 !', bd=1)
+frame_result = LabelFrame(root, text='! 대화 감정 분석 !', bd=1)
 frame_result.grid(row=5, column=0, padx=5, pady=10,
                  sticky=N+E+W+S)
 

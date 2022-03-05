@@ -156,7 +156,7 @@ class Preprocessing:
     def name_change(self, data):
         # 이름 제거
         for i, n in enumerate(data['Name'].unique()):
-            data.loc[(data['Name'] == n), 'Name'] = i
+            data.loc[(data['Name'] == n), 'Name'] = str(i)
         
         return data
     
