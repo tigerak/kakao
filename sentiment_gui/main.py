@@ -220,6 +220,8 @@ def btn_date_save_cmd():
     except :
         return
     
+    btn_op_cmd()
+    
 # 분석 버튼
 btn_date_save = Button(root, width=10, height=2, 
                       text='분석 시작',
@@ -280,8 +282,9 @@ combobox_name_values = ttk.Combobox(frame_graph, width=20, height=10,
 combobox_name_values.current(0) # 기본 선택
 combobox_name_values.grid(row=0, column=1, padx=5, pady=5)
 
-# to me to there 버튼
+# to me or to there 버튼
 def btn_my_cmd():
+    global fig
     my_name = combobox_name_values.get()
     fig = Make_graph(all_chat=all_chat,
                     my_name=my_name,
@@ -290,6 +293,7 @@ def btn_my_cmd():
     canvas.get_tk_widget().grid(row=2, column=0, columnspan=2) 
 
 def btn_op_cmd():
+    global fig
     my_name = combobox_name_values.get()
     fig = Make_graph(all_chat=all_chat,
                     my_name=my_name,
@@ -307,7 +311,14 @@ btn_op = Button(frame_graph, width=20, height=2,
                       command=btn_op_cmd)
 btn_op.grid(row=1, column=1, padx=5, pady=5)
     
-
+# 그래프 확대
+import matplotlib.pyplot as plt
+def blow_up():
+        plt.show()
+btn_blow_up = Button(frame_graph, width=20, height=2, 
+                      text='그래프 확대하기',
+                      command=blow_up)
+btn_blow_up.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
 
 

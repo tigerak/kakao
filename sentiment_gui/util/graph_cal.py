@@ -71,7 +71,7 @@ class Make_graph:
         return g
     
     def fig_graph(self, g_name):
-        ax = plt.figure(figsize=(4, 4))
+        ax = plt.figure(figsize=(3.9, 4.3))
 
         if self.my_or_op == 0:
             pos = nx.spring_layout(g_name)
@@ -104,6 +104,6 @@ class Make_graph:
                                 edge_color='blue', alpha=0.3)
 
         plt.title('싱글이세요? 벙글인데요.')
-        plt.show()
+        # plt.show()
         
         return ax
