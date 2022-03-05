@@ -1,0 +1,4 @@
+data/short/한국어_단발성_대화_데이터셋.xlsx
+data/continuous/한국어_연속적_대화_데이터셋.xlsx
+sentiment_gui/weight/bert_1.pt
+sentiment_gui/weight/bert_2.pt
