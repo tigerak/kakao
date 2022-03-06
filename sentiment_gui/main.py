@@ -1,7 +1,6 @@
-from pyparsing import col
-from util import Preprocessing, End_date_cal
-from util import Make_graph
+from util import Btn_my_op, Btn_data_save
 
+import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.messagebox as msgbox
 from tkinter import *
@@ -56,7 +55,7 @@ entry_text_address.pack(side='left', fill='x',
                         expand=True, ipady=5)
 
 def btn_txt_load_cmd():
-    # 부석할 txt파일 추가 
+    # 분석할 txt파일 추가 
     entry_text_address.delete(0, END)
     files = filedialog.askopenfilenames(title='.txt 파일을 선택해주세요',
                                         filetypes=(('TXT파일', '*.txt'),
@@ -156,16 +155,10 @@ radio_no_name.pack(side='right', padx=40, pady=8)
 
 
 ### 분석 시작 ###
-
+# 분석 버튼
 def btn_date_save_cmd():
-    # 텍스트 파일 확인
     file_name = entry_text_address.get()
     
-    if '.txt' not in file_name:
-        msgbox.showwarning('저기요', '.txt 텍스트 파일을 추가하세요')
-        return
-
-    # 날짜 데이터 변환
     y_1 = combobox_staet_year.get()
     m_1 = combobox_staet_month.get()
     d_1 = combobox_staet_day.get()
@@ -174,55 +167,14 @@ def btn_date_save_cmd():
     m_2 = combobox_end_month.get()
     d_2 = combobox_end_day.get()
     
-    try:
-        e_d = End_date_cal(y_2, m_2, d_2)
-        y_2, m_2, d_2 = e_d.forward()
-    except:
-        return
-    
-    start_date = str(f'--------------- 20{y_1}년 {m_1}월 {d_1}일')
-    end_date = str(f'--------------- 20{y_2}년 {m_2}월 {d_2}일')
-    
-    # 정렬 순서
     yes_no_name = name_var.get()
     
-    # 결과 분석
     global all_chat, combobox_name_values
-    all_chat = Preprocessing(root,
-                             progressbar_var).forward(file_name, 
-                                                    start_date, 
-                                                    end_date, 
-                                                    yes_no_name)
-    name_values = ['이름을 선택해주세요']
-    for i in sorted(all_chat['Name'].unique()):
-        name_values.append(i)
-    combobox_name_values = ttk.Combobox(frame_graph, width=20, height=10,
-                                        values=name_values,
-                                        state='readonly')
-    combobox_name_values.current(0) # 기본 선택
-    combobox_name_values.grid(row=0, column=1, padx=5, pady=5)
-            
-    for i in range(7):
-        e = ['공포', '놀람', '분노', '슬픔', '중립', '행복', '혐오']
-        all_chat.loc[(all_chat['Emotion'] == i), 'show_motion'] = e[i]
-    
-    # 출력
-    try: 
-        # treeview 삭제
-        for row in tree_result.get_children():
-            tree_result.delete(row)
-        # treeview 쓰기
-        for i, n in enumerate(all_chat['Name']):
-            tree_result.insert('', 'end', text="1", 
-                            values=(n, 
-                                    all_chat['Chat'][i], 
-                                    all_chat['show_motion'][i]))
-    except :
-        return
-    
-    btn_op_cmd()
-    
-# 분석 버튼
+    all_chat, combobox_name_values = btn_data_save.forward(file_name, 
+                                     y_1, m_1, d_1, 
+                                     y_2, m_2, d_2,
+                                     yes_no_name)
+                
 btn_date_save = Button(root, width=10, height=2, 
                       text='분석 시작',
                       command=btn_date_save_cmd)
@@ -271,50 +223,55 @@ frame_graph = LabelFrame(root, text='! 그래프 시각화 !',
 frame_graph.grid(row=0, column=1, rowspan=6 ,padx=5, pady=5,
                  sticky=N+E+W)
     
+##############################################
+btn_data_save = Btn_data_save(root, 
+                              progressbar_var,
+                              frame_graph,
+                              tree_result)
+all_chat = None
+##############################################
+
 label_graph_name = Label(frame_graph, text='  나의 이름은  :')
 label_graph_name.grid(row=0, column=0, padx=5, pady=5)
 
-# 이름 선택
-name_values = ['이름을 선택해주세요']
-combobox_name_values = ttk.Combobox(frame_graph, width=20, height=10,
-                                values=name_values,
-                                state='readonly')
-combobox_name_values.current(0) # 기본 선택
-combobox_name_values.grid(row=0, column=1, padx=5, pady=5)
 
-# to me or to there 버튼
-def btn_my_cmd():
-    global fig
-    my_name = combobox_name_values.get()
-    fig = Make_graph(all_chat=all_chat,
-                    my_name=my_name,
-                    my_or_op=0).forward()
-    canvas = FigureCanvasTkAgg(fig, master=frame_graph) #
-    canvas.get_tk_widget().grid(row=2, column=0, columnspan=2) 
+# 이름 선택 콤보 박스
+btn_data_save.sort_name(all_chat)
 
-def btn_op_cmd():
-    global fig
+
+# 이미지 출력
+fig = Btn_my_op().ferst_show(frame_graph)
+
+def btn_me_cmd():
     my_name = combobox_name_values.get()
-    fig = Make_graph(all_chat=all_chat,
-                    my_name=my_name,
-                    my_or_op=1).forward()
-    canvas = FigureCanvasTkAgg(fig, master=frame_graph) #
-    canvas.get_tk_widget().grid(row=2, column=0, columnspan=2)    
+    global fig
+    fig = Btn_my_op().forward(0, my_name, all_chat, frame_graph)
     
+def btn_op_cmd():
+    my_name = combobox_name_values.get()
+    global fig
+    fig = Btn_my_op().forward(1, my_name, all_chat, frame_graph) 
+    
+
 btn_my = Button(frame_graph, width=20, height=2, 
-                    text='내가 호감을 보인 사람',
-                    command=btn_my_cmd)
+                    text='내가 주는 호감도',
+                    command=btn_me_cmd)
 btn_my.grid(row=1, column=0, padx=5, pady=5)
 
 btn_op = Button(frame_graph, width=20, height=2, 
-                      text='내게 호감을 보인 사람',
+                      text='내가 받는 호감도',
                       command=btn_op_cmd)
 btn_op.grid(row=1, column=1, padx=5, pady=5)
     
 # 그래프 확대
-import matplotlib.pyplot as plt
 def blow_up():
-        plt.show()
+    new_window = tk.Toplevel(root)
+    new_window.geometry('1200x900')
+    canvas_up = FigureCanvasTkAgg(fig, master=new_window) 
+    canvas_up.get_tk_widget().pack(fill='both', expand=True)
+    
+    
+    
 btn_blow_up = Button(frame_graph, width=20, height=2, 
                       text='그래프 확대하기',
                       command=blow_up)
@@ -329,6 +286,9 @@ btn_blow_up.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
 
 
+
+
 ##########################################################
+
 
 root.mainloop()

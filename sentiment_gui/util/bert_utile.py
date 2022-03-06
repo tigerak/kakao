@@ -69,7 +69,7 @@ class BERTClassifier(nn.Module):
 
 ### 모델 불러오기 ###
 model = BERTClassifier(bertmodel).to(device)
-model.load_state_dict(torch.load('./weight/bert_2.pt'))
+model.load_state_dict(torch.load(r'D:\kakao\sentiment_gui\weight\bert_2.pt'))
 
 ### 토큰 불러오기 ##
 tokenizer = get_tokenizer()
@@ -90,6 +90,7 @@ args.batch_size = 64
 
 from tkinter import *
 import tkinter.ttk as ttk
+
 class Preprocessing:
     def __init__(self, root, progressbar_var):
         self.progressbar_1 = ttk.Progressbar(root, maximum=100,
@@ -147,8 +148,16 @@ class Preprocessing:
         data['Chat'] = self.chat_list
         data['Emotion'] = self.emot_list
         
+        # 시작 날짜 및 사진 없음 경고 
+        if len(data['Chat']) == 0:
+            msgbox.showwarning('저기요', '대화한 사람이 없거나\n"시작 날짜"가 "대화 시작" 날짜보다\n이전은 아닌지 확인해주세요')
+            print('시작 날짜 에러')
+            return
+        
+        # 이름 제거
         if yes_no_name == 1:
-            data = self.name_change(data)
+            for i, n in enumerate(data['Name'].unique()):
+                data.loc[(data['Name'] == n), 'Name'] = str(i)
             return data
         
         return data
