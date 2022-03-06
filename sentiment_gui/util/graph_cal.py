@@ -117,7 +117,7 @@ class Make_graph:
     
     
 
-### [to Me] or [to There] 버튼
+### [to Me] or [to There] 버튼 ###
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.image as img
 
@@ -132,6 +132,7 @@ class Btn_my_op:
                          my_or_op=my_or_op).forward()
         return self.canv(fig, frame_graph)
         
+    # 캔버스 출력
     def canv(self, fig, frame_graph):
         canvas = FigureCanvasTkAgg(fig, master=frame_graph) 
         canvas.get_tk_widget().grid(row=2, column=0, columnspan=2) 
@@ -139,6 +140,7 @@ class Btn_my_op:
         
         return fig
         
+    # 초기 그래프 출력
     def ferst_show(self, frame_graph):
         
         image_address = r'D:\kakao\sentiment_gui\image_data\sel_name.jpg'
@@ -240,6 +242,3 @@ class Btn_data_save:
         except :
             return
         
-    def t(self):
-        global te
-        te = '가볍게 테스트'

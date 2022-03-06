@@ -20,7 +20,7 @@ bertmodel, vocab = get_pytorch_kobert_model()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
-
+### DateSet ###
 class BERTDataset(Dataset):
     def __init__(self, dataset, bert_tokenizer, args):
         transform = nlp.data.BERTSentenceTransform(
@@ -35,7 +35,7 @@ class BERTDataset(Dataset):
         return (len(self.sentences))
 
 
-
+### 분류기 ###
 class BERTClassifier(nn.Module):
     def __init__(self, 
                  bert, 
@@ -67,17 +67,7 @@ class BERTClassifier(nn.Module):
     
 
 
-### 모델 불러오기 ###
-model = BERTClassifier(bertmodel).to(device)
-model.load_state_dict(torch.load(r'D:\kakao\sentiment_gui\weight\bert_2.pt'))
-
-### 토큰 불러오기 ##
-tokenizer = get_tokenizer()
-tok = nlp.data.BERTSPTokenizer(tokenizer, vocab, lower=False)
-
-
 ### 세팅 ###
-# Setting parameters
 import argparse
 parser = argparse.ArgumentParser()
 args = parser.parse_args("")
@@ -88,6 +78,17 @@ args.pair = False
 
 args.batch_size = 64
 
+### 모델 불러오기 ###
+model = BERTClassifier(bertmodel).to(device)
+model.load_state_dict(torch.load(r'D:\kakao\sentiment_gui\weight\bert_2.pt'))
+
+### 토큰 불러오기 ##
+tokenizer = get_tokenizer()
+tok = nlp.data.BERTSPTokenizer(tokenizer, vocab, lower=False)
+
+
+
+### 데이터 전처리 ###
 from tkinter import *
 import tkinter.ttk as ttk
 
@@ -128,8 +129,8 @@ class Preprocessing:
         
         return self.dataframe(yes_no_name)
         
+    # 채팅 저장
     def save_chat(self, spl):
-        # 채팅 저장
         if len(spl) == 3:
             self.name_list.append(spl[0][1:])
             self.time_list.append(spl[1][1:])
@@ -140,8 +141,8 @@ class Preprocessing:
                 self.time_list.append(self.time_list[-1])
                 self.chat_list.append(spl[0])
     
+    # 데이터 프레임 생성
     def dataframe(self, yes_no_name):
-        # 데이터 프레임 생성
         data = pd.DataFrame()
         data['Name'] = self.name_list
         data['Time'] = self.time_list
@@ -162,15 +163,8 @@ class Preprocessing:
         
         return data
 
-    def name_change(self, data):
-        # 이름 제거
-        for i, n in enumerate(data['Name'].unique()):
-            data.loc[(data['Name'] == n), 'Name'] = str(i)
-        
-        return data
-    
+    # 감정 분석
     def analy(self):
-        # 감정 분석
         data_test = BERTDataset(self.chat_list, tok, args)
         data_len = BERTDataset(self.chat_list, tok, args).__len__()
         pred_list = self.test(data_test, data_len)
@@ -190,6 +184,7 @@ class Preprocessing:
             
         # return isolation_dict
     
+    # 감정 분석
     def test(self, data_test, data_len):
         test_dataloader = DataLoader(data_test, 
                                     batch_size=args.batch_size) #, num_workers=self.args.num_workers) 
@@ -213,6 +208,7 @@ class Preprocessing:
                 
         return current_preds
     
+    # 프로그래스 바 - 업데이트
     def progress(self, data_len):
         self.sum_batch += args.batch_size
         p = (self.sum_batch  / data_len) * 100
@@ -220,6 +216,8 @@ class Preprocessing:
         self.progressbar_1.update()
         return p
     
+    
+### 종료 날짜 가공 ###
 class End_date_cal:
     def __init__(self, y_2, m_2, d_2):
         self.y_2 = int(y_2)
@@ -231,6 +229,7 @@ class End_date_cal:
             y_2, m_2, d_2 = self.cal()
             return y_2, m_2, d_2
     
+    # 종료 날짜 가공
     def cal(self):
         if (self.d_2 == 28) and (self.m_2 == 2):
             return self.y_2, 3, 1
@@ -243,6 +242,7 @@ class End_date_cal:
         else :
             return self.y_2, self.m_2, self.d_2 + 1
         
+    # 오류 경고
     def out_of_date_warning(self):
         if (self.d_2 > 28) and (self.m_2 == 2):
             msgbox.showwarning('글쎄요', '존재하지 않는 날짜입니다.')
