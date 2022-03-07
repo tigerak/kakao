@@ -1,5 +1,3 @@
-from .bert_utile import Preprocessing, End_date_cal
-
 import matplotlib.pyplot as plt
 import networkx as nx
 
@@ -30,6 +28,8 @@ class Make_graph:
             self.my_like()
         elif self.my_or_op == 1 :
             self.op_like()
+        elif self.my_or_op == 2 :
+            self.all_like()
         
         return self.fig_graph()
         
@@ -50,6 +50,14 @@ class Make_graph:
                     self.dg.add_node(o)
                     self.dg.add_edge(o, n, weight=self.data[o][n][5])
             
+    # 모두의 호감 관계도
+    def all_like(self):
+        for n in self.data.keys():
+            for o in self.data[n].keys():
+                if self.data[n][o][5] > 1:
+                    self.dg.add_node(n)
+                    self.dg.add_edge(n, o, weight=self.data[n][o][5])
+    
     # 그래프용 데이터 가공
     def graph_data(self, result):
         g = {}
@@ -83,23 +91,35 @@ class Make_graph:
         
         g_name = self.dg
         
-        pos = nx.shell_layout(g_name)
-            
-        pos[self.my_name] = [0.0, 0.0]
+        # Layout 선택
+        if self.my_or_op is not 2:
+            pos = nx.shell_layout(g_name)
+            pos[self.my_name] = [0.0, 0.0]
+        else:
+            pos = nx.kamada_kawai_layout(g_name)
         
+        # 노드 그리기
+        if self.my_or_op is not 2:
+            node_size = 2000
+        else :
+            d = dict(g_name.degree)
+            node_size = [v * 100 for v in d.values()]
+            
         nx.draw_networkx_nodes(g_name,pos,
                             node_color='green',
                             alpha = 0.1,
-                            node_size=2000)
+                            node_size=node_size)
 
-        labels = {}
+        # 노드 라벨링
+        node_labels = {}
         for node_name in g_name.nodes():
-            labels[str(node_name)] = str(node_name)
-        nx.draw_networkx_labels(g_name, pos, labels, 
+            node_labels[str(node_name)] = str(node_name)
+        nx.draw_networkx_labels(g_name, pos, node_labels, 
                                 font_family=font_name, 
                                 font_weight='bold',
                                 font_size=8)
 
+        # 엣지 그리기
         all_weights = []
         for (node1,node2,data) in g_name.edges(data=True):
             all_weights.append(data['weight'])
@@ -107,17 +127,23 @@ class Make_graph:
 
         for weight in unique_weights:
             weighted_edges = [(node1,node2,edge_attr) for (node1,node2,edge_attr) in g_name.edges(data=True) if edge_attr['weight']==weight]
-            width = weight*len(labels.keys())*3.0/sum(all_weights)
+            width = weight*len(node_labels.keys())*3.0/sum(all_weights)
             nx.draw_networkx_edges(g_name, pos,
                                 edgelist=weighted_edges,
                                 width=width,
                                 edge_color='blue', alpha=0.3)
+            
+        # 엣지 라벨링
+        if self.my_or_op is not 2:
+            edge_labels = nx.get_edge_attributes(g_name, 'weight')
+            nx.draw_networkx_edge_labels(g_name, pos, 
+                                        edge_labels=edge_labels)
         
         return fig
     
     
 
-### [to Me] or [to There] 버튼 ###
+### [to Me] [to There] [to All] 버튼 ###
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.image as img
 
@@ -135,7 +161,7 @@ class Btn_my_op:
     # 캔버스 출력
     def canv(self, fig, frame_graph):
         canvas = FigureCanvasTkAgg(fig, master=frame_graph) 
-        canvas.get_tk_widget().grid(row=2, column=0, columnspan=2) 
+        canvas.get_tk_widget().grid(row=2, column=0, columnspan=3) 
         plt.close()
         
         return fig
@@ -153,92 +179,4 @@ class Btn_my_op:
         return self.canv(fig, frame_graph)
     
 
-### 분석 버튼 ###
-import tkinter.messagebox as msgbox
-import tkinter.ttk as ttk
-
-class Btn_data_save:
-    def __init__(self, root, progressbar_var, frame_graph, tree_result):
-        self.root = root
-        self.progressbar_var = progressbar_var
-        self.frame_graph = frame_graph
-        self.tree_result = tree_result
-        
-    def forward(self, file_name, 
-                y_1, m_1, d_1, 
-                y_2, m_2, d_2,
-                yes_no_name):
-        
-        start_date, end_date = self.preprocess(file_name, 
-                                               y_1, m_1, d_1, 
-                                               y_2, m_2, d_2)
-        if start_date is None:
-            return
-        
-        all_chat = Preprocessing(self.root,
-                                 self.progressbar_var).forward(file_name, 
-                                                               start_date, 
-                                                               end_date, 
-                                                               yes_no_name)
-        combobox_name_values = self.sort_name(all_chat)
-        self.print_out(all_chat)
-        
-        return all_chat, combobox_name_values
-    
-    # 기본 데이터 점검 및 가공
-    def preprocess(self, file_name, y_1, m_1, d_1, y_2, m_2, d_2):
-        # 텍스트 파일 확인
-        if '.txt' not in file_name:
-            msgbox.showwarning('저기요', '.txt 텍스트 파일을 추가하세요')
-            print('텍스트 데이터 첨부 에러')
-            return
-
-        # 날짜 데이터 변환
-        try:
-            y_2, m_2, d_2 = End_date_cal(y_2, m_2, d_2).forward()
-            
-        except:
-            print('종료 날짜 에러')
-            return
-        
-        start_date = str(f'--------------- 20{y_1}년 {m_1}월 {d_1}일')
-        end_date = str(f'--------------- 20{y_2}년 {m_2}월 {d_2}일')
-        
-        return start_date, end_date     
-        
-    # 이름 선택 콤보 박스
-    def sort_name(self, all_chat):
-        name_values = ['이름을 선택해주세요']
-        if all_chat is not None:
-            names = sorted(all_chat['Name'].unique())
-            name_values.extend(names)
-        combobox_name_values = ttk.Combobox(self.frame_graph, 
-                                            width=20, height=10,
-                                            values=name_values,
-                                            state='readonly')
-        combobox_name_values.current(0) # 기본 선택
-        combobox_name_values.grid(row=0, column=1, padx=5, pady=5)
-        
-        return combobox_name_values
-    
-    # 분석 결과 출력    
-    def print_out(self, all_chat):
-        for i in range(7):
-            e = ['공포', '놀람', '분노', '슬픔', '중립', '행복', '혐오']
-            all_chat.loc[(all_chat['Emotion'] == i), 'show_motion'] = e[i]
-        
-        # 출력
-        try: 
-            # treeview 삭제
-            for row in self.tree_result.get_children():
-                self.tree_result.delete(row)
-            # treeview 쓰기
-            for i, n in enumerate(all_chat['Name']):
-                self.tree_result.insert('', 'end', text="1", 
-                                        values=(n, 
-                                                all_chat['Chat'][i], 
-                                                all_chat['show_motion'][i])
-                                        )
-        except :
-            return
         

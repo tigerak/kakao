@@ -6,7 +6,6 @@ import tkinter.messagebox as msgbox
 from tkinter import *
 from tkinter import filedialog
 
-from click import progressbar
 
 root = Tk()
 root.title('Are U Alone? yes, I\'m Single')
@@ -252,16 +251,26 @@ def btn_op_cmd():
     global fig
     fig = Btn_my_op().forward(1, my_name, all_chat, frame_graph) 
     
+def btn_all_cmd():
+    my_name = combobox_name_values.get()
+    global fig
+    fig = Btn_my_op().forward(2, my_name, all_chat, frame_graph) 
+    
 
-btn_my = Button(frame_graph, width=20, height=2, 
+btn_my = Button(frame_graph, width=15, height=2, 
                     text='내가 주는 호감도',
                     command=btn_me_cmd)
 btn_my.grid(row=1, column=0, padx=5, pady=5)
 
-btn_op = Button(frame_graph, width=20, height=2, 
+btn_op = Button(frame_graph, width=15, height=2, 
                       text='내가 받는 호감도',
                       command=btn_op_cmd)
 btn_op.grid(row=1, column=1, padx=5, pady=5)
+
+btn_all = Button(frame_graph, width=15, height=2, 
+                      text='전체 호감도 분포',
+                      command=btn_all_cmd)
+btn_all.grid(row=1, column=2, padx=5, pady=5)
     
 # 그래프 확대
 def blow_up():
@@ -275,7 +284,7 @@ def blow_up():
 btn_blow_up = Button(frame_graph, width=20, height=2, 
                       text='그래프 확대하기',
                       command=blow_up)
-btn_blow_up.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
+btn_blow_up.grid(row=3, column=0, columnspan=3, padx=5, pady=5)
 
 
 

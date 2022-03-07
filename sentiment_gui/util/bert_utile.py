@@ -91,6 +91,7 @@ tok = nlp.data.BERTSPTokenizer(tokenizer, vocab, lower=False)
 ### 데이터 전처리 ###
 from tkinter import *
 import tkinter.ttk as ttk
+import tkinter.messagebox as msgbox
 
 class Preprocessing:
     def __init__(self, root, progressbar_var):
@@ -217,6 +218,7 @@ class Preprocessing:
         return p
     
     
+    
 ### 종료 날짜 가공 ###
 class End_date_cal:
     def __init__(self, y_2, m_2, d_2):
@@ -252,3 +254,93 @@ class End_date_cal:
             return
         return 'OK'
 
+
+
+### 분석 버튼 ###
+class Btn_data_save:
+    def __init__(self, root, progressbar_var, frame_graph, tree_result):
+        self.root = root
+        self.progressbar_var = progressbar_var
+        self.frame_graph = frame_graph
+        self.tree_result = tree_result
+        
+    def forward(self, file_name, 
+                y_1, m_1, d_1, 
+                y_2, m_2, d_2,
+                yes_no_name):
+        
+        start_date, end_date = self.preprocess(file_name, 
+                                               y_1, m_1, d_1, 
+                                               y_2, m_2, d_2)
+        if start_date is None:
+            return
+        
+        all_chat = Preprocessing(self.root,
+                                 self.progressbar_var).forward(file_name, 
+                                                               start_date, 
+                                                               end_date, 
+                                                               yes_no_name)
+        combobox_name_values = self.sort_name(all_chat)
+        self.print_out(all_chat)
+        
+        return all_chat, combobox_name_values
+    
+    # 기본 데이터 점검 및 가공
+    def preprocess(self, file_name, y_1, m_1, d_1, y_2, m_2, d_2):
+        # 텍스트 파일 확인
+        if '.txt' not in file_name:
+            msgbox.showwarning('저기요', '.txt 텍스트 파일을 추가하세요')
+            print('텍스트 데이터 첨부 에러')
+            return
+
+        # 날짜 데이터 변환
+        try:
+            y_2, m_2, d_2 = End_date_cal(y_2, m_2, d_2).forward()
+            
+        except:
+            print('종료 날짜 에러')
+            return
+        
+        start_date = str(f'--------------- 20{y_1}년 {m_1}월 {d_1}일')
+        end_date = str(f'--------------- 20{y_2}년 {m_2}월 {d_2}일')
+        
+        return start_date, end_date     
+        
+    # 이름 선택 콤보 박스
+    def sort_name(self, all_chat):
+        name_values = ['이름을 선택해주세요']
+        if all_chat is not None:
+            names = sorted(all_chat['Name'].unique())
+            name_values.extend(names)
+        combobox_name_values = ttk.Combobox(self.frame_graph, 
+                                            width=15, height=10,
+                                            values=name_values,
+                                            state='readonly')
+        combobox_name_values.current(0) # 기본 선택
+        combobox_name_values.grid(row=0, column=1, 
+                                  columnspan=2, 
+                                  padx=5, pady=5,
+                                  sticky=W+E)
+        
+        return combobox_name_values
+    
+    # 분석 결과 출력    
+    def print_out(self, all_chat):
+        for i in range(7):
+            e = ['공포', '놀람', '분노', '슬픔', '중립', '행복', '혐오']
+            all_chat.loc[(all_chat['Emotion'] == i), 'show_motion'] = e[i]
+        
+        # 출력
+        try: 
+            # treeview 삭제
+            for row in self.tree_result.get_children():
+                self.tree_result.delete(row)
+            # treeview 쓰기
+            for i, n in enumerate(all_chat['Name']):
+                self.tree_result.insert('', 'end', text="1", 
+                                        values=(n, 
+                                                all_chat['Chat'][i], 
+                                                all_chat['show_motion'][i])
+                                        )
+        except :
+            return
