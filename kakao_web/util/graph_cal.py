@@ -1,3 +1,6 @@
+from http.client import HTTP_PORT, HTTPResponse
+from urllib import response
+from flask import Response, make_response
 import matplotlib.pyplot as plt
 import networkx as nx
 
@@ -7,20 +10,8 @@ from matplotlib import rc
 from IPython.core.display import display, HTML
 display(HTML("<style>.container {width:90% !important;}</style>"))
 
-###################################################
-import os
 
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-###################################################
-
-# 경로 수정 추가
-font_name = fm.FontProperties(fname=resource_path("c:/Windows/Fonts/malgun.ttf")).get_name()
+font_name = fm.FontProperties(fname="c:/Windows/Fonts/malgun.ttf").get_name()
 rc('font', family=font_name)
 
 import warnings
@@ -29,7 +20,7 @@ warnings.filterwarnings('ignore')
 
 ### 그래프 그리기 ###
 class Make_graph:
-    def __init__(self, all_chat, my_name, my_or_op=0):
+    def __init__(self, all_chat, my_name, my_or_op):
         self.my_name = my_name
         self.my_or_op = my_or_op
         self.data = self.graph_data(all_chat)
@@ -99,7 +90,7 @@ class Make_graph:
     
     # 그래프 그리기
     def fig_graph(self):
-        fig = plt.figure(figsize=(3.9, 4.285))
+        fig = plt.figure()#(figsize=(4, 4))
         plt.title('싱글이세요? 벙글인데요.')
         
         g_name = self.dg
@@ -157,39 +148,46 @@ class Make_graph:
     
 
 ### [to Me] [to There] [to All] 버튼 ###
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.backends.backend_svg import FigureCanvasSVG
 import matplotlib.image as img
+from io import BytesIO
 
 class Btn_my_op:
     def init(self):
         pass
         
-    def forward(self, my_or_op, my_name, all_chat, frame_graph):
+    def forward(self, my_or_op, my_name, all_chat):
         
         fig = Make_graph(all_chat=all_chat,
                          my_name=my_name,
                          my_or_op=my_or_op).forward()
-        return self.canv(fig, frame_graph)
+        return self.canv(fig)
         
     # 캔버스 출력
-    def canv(self, fig, frame_graph):
-        canvas = FigureCanvasTkAgg(fig, master=frame_graph) 
-        canvas.get_tk_widget().grid(row=2, column=0, columnspan=3) 
+    def canv(self, fig):
+        output = BytesIO()
+        canvas = FigureCanvasSVG(fig).print_svg(output)
+        response = make_response(output.getvalue())
+        response.content_type = 'image/svg+xml'
+        output.seek(0)
+        plt.savefig('static/img/graph.svg')
         plt.close()
         
-        return fig
+        return response
         
     # 초기 그래프 출력
-    def ferst_show(self, frame_graph):
+    def ferst_show(self):
         
-        image_address = resource_path(r'D:\kakao\sentiment_gui\image_data\sel_name.jpg')
+        image_address = r'D:\kakao\sentiment_gui\image_data\sel_name.jpg'
         
         fig = plt.figure(figsize=(3.9, 4.285))
         plt.title('싱글이세요? 벙글인데요.')
         image = img.imread(image_address)
         plt.imshow(image)
         plt.axis('off')
-        return self.canv(fig, frame_graph)
+        
+        return self.canv(fig)
     
 
         

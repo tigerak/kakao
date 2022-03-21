@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Are U Alone? Yes, I'm Single</title>
+
+</head>
+
+<body>
+
+    <fieldset>
+        <legend>파일 업로드</legend>
+        <table>
+        <form name="UploadTXT" method='POST' action='/analy' enctype = "multipart/form-data">
+            <tr>
+                <td>대화 파일 선택 : </td>
+                <td><input type="file" value="파일 선택" name="chat_file"/></td>
+            </tr>
+            <tr>
+                <div>
+                    <td><label class="input-group-text" for="inputStarScore">시작 날짜 선택 : </label></td>
+                    <td>
+                        <input type="date" id="startdate" name="start_date"
+                        value={{ time_set }}>
+                    </td>
+                </div>
+            </tr>
+            <tr>
+                <div>
+                    <td><label class="input-group-text" for="inputStarScore">종료 날짜 선택 : </label></td>
+                    <td>
+                        <input type="date" id="enddate" name="end_date"
+                        value={{ time_set }}>
+                    </td>
+                </div>
+            </tr>
+            <tr>
+                <div>
+                    <td><label class="input-group-text" for="inputStarScore">이름 공개 선택 : </label></td>
+                    <td>
+                    <select class="form-select" name='select_anony' id="inputStarScore">
+                        <option value='yes_name' selected>이름 공개</option>
+                        <option value='no_name'>이름 비공개</option>
+                    </select>
+                </td>
+                </div>
+            </tr>
+            <tr>
+                <td colspan="2"><input type="submit" value="분석 시작"></td>
+            </tr>
+        </form>
+        </table>
+    </fieldset>
+
+    <fieldset>
+        <legend>그래프 시각화</legend>
+        <table>
+        <form name="OutputGraph" method='POST' action='/analy/graph' enctype = "multipart/form-data">
+            <tr>
+                <div>
+                    <td><label class="SelectWho" for="inputSelectWho">나의 이름은? : </label></td>
+                    <td colspan='2'>
+                    <select class="SelectWho" name='select_who' id="inputSelectWho">
+                        <option value='이름을 선택해 주세요' selected>이름을 선택해 주세요.</option>
+                        {% for n in name_list %}
+                        <option value={{n}}>{{n}}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                </div>
+            </tr>
+            <tr>
+                <td><input name='give' type="submit" value="내가 주는 호감도"></td>
+                <td><input name='give' type="submit" value="내가 받는 호감도"></td>
+                <td><input name='give' type="submit" value="전체 호감도 분포"></td>
+            </tr>
+            <tr>
+                <td colspan='3'><img src="{{ url_for('static', filename='img/graph.svg') }}" width='400' height='400'></td>
+            </tr>
+            <tr>
+                <td colspan='3'>
+                    {% block content %}
+                    <section>
+                        {{ graph_img }}
+                    </select>
+                    {% endblock %}
+                </td>
+            </tr>
+        </form>
+        </table>
+    </fieldset>
+
+</body>
+
+</html>
