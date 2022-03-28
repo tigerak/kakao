@@ -1,4 +1,5 @@
-from flask import Blueprint, Response, render_template, request, send_file
+from flask import Blueprint, Response, render_template, request, make_response
+from markupsafe import Markup
 from werkzeug.utils import secure_filename
 import os
 import datetime
@@ -17,7 +18,6 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 def index():
     graph_img = Btn_my_op().ferst_show()
-    
     return render_template('index.html', 
                            time_set=time_set,
                            graph_img=graph_img)
@@ -78,6 +78,8 @@ def graph():
             my_or_op = 2
             
         # 그래프 생성
+        print(name_list)
+        print(my_name)
         graph_img = Btn_my_op().forward(my_or_op, my_name, df)
     
     return render_template('index.html', 
